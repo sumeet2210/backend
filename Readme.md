@@ -1,1 +1,1 @@
-# a backend project in javascript
+# a backend based project in javascript
