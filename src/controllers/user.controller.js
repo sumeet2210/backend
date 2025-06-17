@@ -4,6 +4,7 @@ import {User} from "../models/user.models.js";
 import { uploadResult } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import jwt from "jsonwebtoken";
+import { upload } from "../middlewares/multer.middleware.js";
 const generateAccessAndRefreshTokens = async(userId)=>{
       try{
         const user = await User.findById(userId);
@@ -179,10 +180,84 @@ try {
 }
 
 });
-
+const changecurrentpassword = asynchandler(async(req,res)=>{
+  const {oldpassword,newpassword,confirmpassword} = req.body;
+  const user = await User.findById(req.user?._id);
+  const ispasswordright = await user.isPasswordCorrect(oldpassword);
+  if(!ispasswordright){
+    throw new ApiError(400,"invalid old password");
+  }
+  if(confirmpassword!=newpassword){
+    throw new ApiError(401,"new password is not equal");
+  }
+  user.password = newpassword;
+  await user.save({validateBeforeSave:false});
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{},"password changed successfully"));
+});
+const getcurrentuser = asynchandler(async(req,res)=>{
+  return res
+  .status(200)
+  .json(200,req.user,"current user fetched successfully");
+});
+const updateuseravatar = asynchandler(async(req,res)=>{
+  const avatarLocalPath = req.file?.path;
+  if(!avatarLocalPath){
+    throw new ApiError(400,"avatar file is required");
+  }
+  const avatar = await uploadResult(avatarLocalPath);
+  if(!avatar.url){
+    throw new ApiError(400,"error while uploading on avatar");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        avatar:avatar.url
+      }
+    },{
+      new:true
+    }
+  ).select("-password");
+  return res
+  .status(200)
+  .json(
+    new ApiResponse(200,user,"avatar updated successfully")
+  )
+})
+const updateusercoverimage = asynchandler(async(req,res)=>{
+  const CoverImageLocalPath = req.file?.path;
+  if(!CoverImageLocalPath){
+    throw new ApiError(400,"avatar file is required");
+  }
+  const coverimage = await uploadResult(CoverImageLocalPath);
+  if(!coverimage.url){
+    throw new ApiError(400,"error while uploading on avatar");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        coverimage: coverimage.url
+      }
+    },{
+      new:true
+    }
+  ).select("-password");
+  return res
+  .status(200)
+  .json(
+    new ApiResponse(200,user,"avatar updated successfully")
+  )
+})
 export { 
   registeruser,
   loginuser,
   logoutUser,
-  refreshaccesstoken
+  refreshaccesstoken,
+  changecurrentpassword,
+  getcurrentuser,
+  updateuseravatar,
+  updateusercoverimage
 };
