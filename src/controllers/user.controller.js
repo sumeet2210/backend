@@ -116,7 +116,7 @@ const loginuser = asynchandler(async(req,res)=>{
     "user logged in successfully"
     )
   )
-})
+});
   const logoutUser = asynchandler(async(req,res)=>{
   await User.findByIdAndUpdate(
       req.user._id,
@@ -138,8 +138,7 @@ const loginuser = asynchandler(async(req,res)=>{
     .clearCookie("accesstoken",options)
     .clearCookie("refreshtoken",options)
     .json(new ApiResponse(200,{},"user logged out"))
-  })
-
+});
 const refreshaccesstoken = asynchandler(async(req,res)=>{
 const incomingrefreshtoken =  res.cookies.refreshtoken || req.body.refreshtoken;
 if(!incomingrefreshtoken){
@@ -179,10 +178,9 @@ try {
   throw new ApiError(401,"INVALID REFRESH TOKEN");
 }
 
-})
+});
 
 export { 
-  
   registeruser,
   loginuser,
   logoutUser,
